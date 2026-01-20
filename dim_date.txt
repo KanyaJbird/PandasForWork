@@ -1,0 +1,42 @@
+--------------BigQuery---------------------
+SELECT
+  FORMAT_DATE('%m/%d/%Y', d) as ID,
+  d AS Full_date,
+  EXTRACT(YEAR FROM d) AS Year,
+  EXTRACT(WEEK FROM d) AS Year_week,
+  EXTRACT(DAY FROM d) AS Year_day,
+  FORMAT_DATE('%Q', d) as Quarter,
+  FORMAT_DATE('%Y',d) || 'Q' || FORMAT_DATE('%Q', d) as YearQuarter,
+  EXTRACT(MONTH FROM d) AS Month_num,
+  FORMAT_DATE('%B', d) as Month_name_long,
+  FORMAT_DATE('%b', d) as Month_name_short,
+  EXTRACT(MONTH FROM d) || '/' || FORMAT_DATE('%Y',d) as MonthYear,
+  FORMAT_DATE('%w', d) AS WeekOfDay,
+  FORMAT_DATE('%A', d) AS Day_name_long,
+  FORMAT_DATE('%a', d) AS Day_name_short,
+  (CASE WHEN FORMAT_DATE('%A', d) IN ('Sunday', 'Saturday') THEN 0 ELSE 1 END) AS is_weekday
+  
+FROM (
+  --fix date range here
+  SELECT * FROM UNNEST(GENERATE_DATE_ARRAY('2022-01-01', '2030-12-31', INTERVAL 1 DAY)) AS d )
+
+--------------Dax---------------------
+DateTable = 
+ADDCOLUMNS(
+    CALENDAR(DATE(2022, 1, 1), DATE(2030, 12, 31)),
+    "ID", FORMAT([Date], "MM/dd/yyyy"),
+    "Full_date", [Date],
+    "Year", YEAR([Date]),
+    "Year_week", WEEKNUM([Date], 2),  -- 2 = Week starts on Monday
+    "Year_day", DAY([Date]),
+    "Quarter", "Q" & FORMAT([Date], "Q"),
+    "YearQuarter", FORMAT([Date], "YYYY") & "Q" & FORMAT([Date], "Q"),
+    "Month_num", MONTH([Date]),
+    "Month_name_long", FORMAT([Date], "MMMM"),
+    "Month_name_short", FORMAT([Date], "MMM"),
+    "MonthYear", FORMAT([Date], "M/YYYY"),
+    "WeekOfDay", WEEKDAY([Date], 1) - 1,  -- 0 = Sunday, 6 = Saturday
+    "Day_name_long", FORMAT([Date], "dddd"),
+    "Day_name_short", FORMAT([Date], "ddd"),
+    "is_weekday", IF(WEEKDAY([Date], 2) <= 5, 1, 0)
+)
